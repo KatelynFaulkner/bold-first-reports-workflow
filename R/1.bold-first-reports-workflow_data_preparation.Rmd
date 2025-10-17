@@ -1,0 +1,151 @@
+---
+title: |
+  1: Data preparation
+author:
+  - Katelyn T. Faulkner$^{1,2}$
+  - $^1$South African National Biodiversity Institute, Kirstenbosch Research Centre, Cape Town, 
+  - 7735, South Africa
+  - $^2$Department of Zoology and Entomology, University of Pretoria, Pretoria, 0028, 
+  - South Africa
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, cache = FALSE}
+knitr::opts_knit$set(
+  root.dir = rprojroot::find_rstudio_root_file()
+  )
+```
+
+
+```{r global_options, include = FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE,
+tidy.opts=list(width.cutoff=60, tidy=TRUE), eval=FALSE) 
+```
+
+# Step 1: Preparation of the R environment
+
+## Install and load R CRAN packages
+
+Required packages
+```{r}
+packages = c("tidyr", "dplyr", "stringr") # three packages required
+```
+
+Install (if required) and load packages
+
+```{r}
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
+```
+
+# Step 2: Load input data
+
+```{r}
+WatchList<-read.csv("data\\raw\\WatchList.csv") # load watch list data
+
+InspectList<-read.csv("data\\raw\\InspectionsList.csv") # load inspection data
+
+BOLDList<-read.csv("data\\raw\\BOLDList.csv") # load BOLD data
+```
+
+# Step 3: Prepare datasets
+
+## Step 3a: Prepare Watch list
+
+Filter data so that only those on the 'watch list' are included
+
+```{r}
+WatchList<-WatchList %>% filter(Final.designation == "Watch list") 
+```
+
+Remove unnecessary columns
+
+```{r}
+WatchList<-WatchList %>% select(Species.name) # only keep list of species
+```
+
+Rename the column with the list of species to 'verbatimScientificName'
+
+```{r}
+WatchList <- WatchList %>% 
+  rename("verbatimScientificName"= "Species.name")
+names(WatchList) # names of the columns
+```
+ 
+## Step 3b: Prepare inspection data
+
+Filter data so that only 'absent' species are included
+
+```{r}
+InspectList<-InspectList %>% filter(SA.occurenceStatus.current == "absent")
+```
+
+Remove unnecessary columns
+
+```{r}
+InspectList<-InspectList %>% select(scientificName) # only keep list of species
+```
+
+Rename the column with the list of species to 'verbatimScientificName'
+
+```{r}
+InspectList <- InspectList %>% 
+  rename("verbatimScientificName"= "scientificName")
+names(InspectList) # names of the columns
+```
+
+## Step 3c: Prepare data from BOLD
+
+Filter data so that only records from South Africa with nucleotides and species names are included
+
+```{r}
+BOLDList<-BOLDList %>% filter(country == "South Africa" & nucleotides != "" & species_name != "")  %>% filter(grepl('[a-zA-Z]', nucleotides))
+```
+
+Remove unnecessary columns
+
+```{r}
+BOLDList<-BOLDList %>% select(species_name) # only keep list of species
+```
+
+Rename the column with the list of species to 'verbatimScientificName'
+
+```{r}
+BOLDList <- BOLDList %>% 
+  rename("verbatimScientificName"= "species_name")
+names(BOLDList) # names of the columns
+```
+
+Remove repeated species names
+
+```{r}
+BOLDList<-BOLDList %>% distinct(verbatimScientificName)
+```
+
+# Step 4: Write prepared data to file
+
+Files for taxon name standardisation have "_s" at the end of the file name and are written to interim folder
+
+```{r}
+write.csv(WatchList, "data//interim//WatchList_s.csv", row.names=FALSE) # write watch list data
+
+write.csv(InspectList, "data//interim//InspectionsList_s.csv", row.names=FALSE) # write inspection data
+
+write.csv(BOLDList, "data//interim//BOLDList_s.csv", row.names=FALSE) # write BOLD data
+```
+
