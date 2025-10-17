@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Fernández Winzer"
+  given-names: "Laura"
+  orcid: "https://orcid.org/0000-0003-0675-9117"
+- family-names: "Faulkner"
+  given-names: "Katelyn Terri"
+  orcid: "https://orcid.org/0000-0002-3955-353X"
+- family-names: "Paap"
+  given-names: "Trudy"
+  orcid: "https://orcid.org/0000-0003-1364-4350"
+- family-names: "Wilson"
+  given-names: "John Ross"
+  orcid: "0000-0003-0174-3239"
+title: "bold-first-reports-workflow"
+version: 1.0.0
+url: "https://github.com/KatelynFaulkner/bold-first-reports-workflow"

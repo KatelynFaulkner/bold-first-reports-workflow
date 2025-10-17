@@ -1,0 +1,101 @@
+---
+title: |
+  3: List comparison
+author:
+  - Katelyn T. Faulkner$^{1,2}$
+  - $^1$South African National Biodiversity Institute, Kirstenbosch Research Centre, Cape Town, 
+  - 7735, South Africa
+  - $^2$Department of Zoology and Entomology, University of Pretoria, Pretoria, 0028, 
+  - South Africa
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, cache = FALSE}
+knitr::opts_knit$set(
+  root.dir = rprojroot::find_rstudio_root_file()
+  )
+```
+
+```{r global_options, include = FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE,
+tidy.opts=list(width.cutoff=60, tidy=TRUE), eval=FALSE) 
+```
+
+# Step 1: Preparation of the R environment
+
+## Install and load R CRAN packages
+
+```{r}
+packages = c("tidyr", "dplyr")
+
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
+```
+
+# Step 2: Load input data
+
+```{r}
+BOLDList<-read.csv("data\\processed\\BOLDList\\Taxon_names_standardised_c.csv") # load species list from BOLD that has been taxonomically standardised (including manual checks)
+
+WatchList<-read.csv("data\\processed\\WatchList\\Taxon_names_standardised_c.csv") # load watch list that has been taxonomically standardised (including manual checks)
+
+InspectList<-read.csv("data\\processed\\InspectionsList\\Taxon_names_standardised_c.csv") # load species list from inspection data that has been taxonomically standardised (including manual checks)
+
+BODATSAList<-read.csv("data\\interim\\BODATSAPrepared.csv") # load species list from BODATSA
+```
+
+# Step 3: Compare species lists
+
+## Compare BOLD to the watch list
+
+Identify species that are in BOLD and are in the Watch list
+
+```{r}
+BOLDWatchComp<-WatchList%>% filter(scientificName %in% BOLDList$scientificName) # compare lists
+```
+
+## Compare BOLD and BODATSA
+
+Identify species that are in BOLD, but not in BODATSA
+
+```{r}
+BOLDPlants<-BOLDList %>% filter(phylum == "Tracheophyta" & !is.na(scientificName)) # create a plants subset 
+
+BODATSAFullscientificName<-unique(c(BODATSAList$scientificName, BODATSAList$Accepted)) # get full list of accepted scientific names in BODATSA 
+
+BOLDBODATSAComp<-BOLDPlants%>% filter(!scientificName %in% BODATSAFullscientificName) # compare lists
+```
+
+## Compare BOLD and inspection data
+
+Identify species that are in BOLD, and in the inspection data as 'absent'
+
+```{r}
+BOLDInspectComp<-InspectList%>% filter(scientificName %in% BOLDList$scientificName) # compare lists
+```
+
+# Step 4: Write prepared data to file
+
+```{r}
+write.csv(BOLDWatchComp, "data//processed//BOLD_WatchList_comparison.csv", row.names=FALSE) # write BOLD and watch list comparison
+
+write.csv(BOLDBODATSAComp, "data//processed//BOLD_BODATSA_comparison.csv", row.names=FALSE) # write BOLD and BODATSA comparison
+
+write.csv(BOLDInspectComp, "data//processed//BOLD_InspectionData_comparison.csv", row.names=FALSE) # write BOLD and inspection data comparison
+```
+

@@ -1,0 +1,215 @@
+---
+title: |
+  | Manual:
+  | A workflow to ensure first reports of alien species from molecular analyses are acted upon 
+author:
+  - Katelyn T. Faulkner$^{1,2}$
+  - $^1$South African National Biodiversity Institute, Kirstenbosch Research Centre, Cape Town, 
+  - 7735, South Africa
+  - $^2$Department of Zoology and Entomology, University of Pretoria, Pretoria, 0028, 
+  - South Africa
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r global_options, include = FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE,
+tidy.opts=list(width.cutoff=60)) 
+```
+
+\newpage
+
+# Introduction
+
+This workflow was developed to ensure molecular observations of alien species are evaluated and acted upon. The workflow was developed using South Africa as a case study. It compares records from the ‘Barcode of Life Data System’ (BOLD) (Ratnasingham and Hebert 2007; Ratnasingham et al. 2024) to three datasets: a watch list of species of concern (Faulkner et al. 2014), a list of high-risk pests detected at-border in imports but not known to occur post-border within South Africa (Saccaggi et al. 2021); and the [Botanical Database of Southern Africa](http://posa.sanbi.org/). 
+
+This document describes the workflow. 
+
+The workflow has been created in R software, version 4.4.0 (R Core Team 2024). 
+
+# Requirements 
+
+The following are required to execute the workflow: 
+
+1. Installed R software (version 4.4.0 or higher) and Rstudio
+
+2. Installed R packages: "tidyr", "dplyr","rgbif", "stringr", "stringdist", "rWCVP", "purrr", "lubridate", remotes", "rWCVPdata"
+
+3. A stable internet connection
+
+## The R environment
+
+R (version 4.0.0 or higher) and Rstudio need to be installed, which are freely available at: https://cran.r-project.org and https://www.rstudio.com/
+
+Ten R packages and their dependencies must be installed. Nine of these packages can be obtained through the R CRAN, and the remaining package "rWCVPdata" can be obtained from GitHub, using the package "remotes". 
+
+If executed the following code will load and, if required, install the packages.
+
+Specify the packages required from R CRAN:
+
+```{r}
+packages = c("tidyr", "dplyr",
+             "rgbif", "stringr", "stringdist", "lubridate", "rWCVP", "purrr")
+```
+
+Install R CRAN packages (if required) and load:
+
+```{r}
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+) # check if the packages are installed, and install them if not. Load the packages
+```
+
+Install and load "remotes" package and install and load "rWCVPdata" package from GitHub
+
+```{r}
+rWCVPcheck<-"rWCVPdata" %in% rownames(installed.packages()) # check if rWCVPdata is installed
+if(rWCVPcheck == FALSE){
+remotes.check<-"remotes" %in% rownames(installed.packages()) # check if remotes is installed
+if(remotes.check == FALSE){
+  install.packages("remotes") # install remotes if required
+}
+remotes::install_github('matildabrown/rWCVPdata') # install rWCVPdata from GitHub if required
+}
+require('rWCVPdata') # load package
+```
+
+## Scripts
+
+The R scripts for this workflow is provided as .Rmd files on a GitHub repository "https://github.com/KatelynFaulkner/bold-first-reports-workflow". The .Rmd files provides the code with annotation. 
+
+The repository can be downloaded onto your computer as a zip file. The downloaded zip file will contain all the required folders. The zip file will need to be extracted. The main folder contains the Rstudio project file (rsa-ans-workflow.Rproj) of the workflow. This file should be opened to use the workflow. The subfolder `R/` contains the scripts as .Rmd files. The subfolder `data/` contains three subfolders named `raw/`, `interim/`, and `processed/`. All files required to run the workflow need to be saved in the `raw/` subfolder. Outputs that are produced while executing the workflow, but that are not the final outputs, are stored in the folder `interim/`. The final outputs of the workflow are stored in the `processed/` folder. The `manuals/` subfolder contains a manual that describes the workflow as a R markdown (.Rmd file).
+
+## Inputs
+
+The following inputs are required:
+
+A. The BODATSA dataset in csv format.
+
+B. The BOLD dataset in csv format.
+
+C. A watch list of species of concern for South Africa (Faulkner et al. 2014) in csv format.
+
+D. A list of high-risk pests detected at-border in imports but not known to occur post-border within South Africa (Saccaggi et al. 2021) in csv format
+
+E. The date that the BODATSA dataset was downloaded
+
+F. Information on the format of the taxon names to be standardised
+
+# Executing the workflow
+
+To execute the automated parts of the workflow the Rstudio project file `bold-first-report-workflow.Rproj` found in the main folder for the workflow must be opened. This will set the working directory.
+
+Below each step of the workflow is briefly described.
+
+## Step 1: Acquisition, initial inspection, and preparation of the original datasets
+
+### Data aquisition and inspection 
+
+*Input A: BODATSA dataset*
+
+This dataset is provided by the user and must be downloaded from https://posa.sanbi.org/sanbi/Explore. To do so, simply click download, indicated using the symbology for Microsoft excel (a green 'X'). The standard dataset must be downloaded (i.e., no columns must be added or removed before download). The dataset will be downloaded as an excel file, but must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: BODATSA.csv. 
+
+The date the dataset is downloaded must be noted (see Step 2 below).
+
+*Input B: The BOLD dataset*
+
+The BOLD dataset needs to be downloaded from the data portal of the BOLD systems website (https://portal.boldsystems.org/). The data must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: BOLDList.csv.
+
+*Input C: A watch list of species of concern for South Africa*
+
+A watch list of species of concern for South Africa was developed by Faulkner et al. (2014). This watch list is available online as part of the supplementary material to the paper (https://www.sciencedirect.com/science/article/pii/S0006320714003024#s0080). Supplementary data 4 provides the data required. The dataset will be downloaded as an excel file, but must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: WatchList.csv.
+
+*Input D: A list of high-risk pests detected at-border in imports but not known to occur post-border within South Africa* 
+
+Saccaggi et al. (2021) produced a dataset of agricultural pests interscepted at South Africa's borders, but not yet recorded within the country. The dataset can be downloaded at https://doi.org/10.6084/m9.figshare.c.5180681.v1() in csv format. The dataset must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: InspectionsList.csv.
+
+### Data preparation
+
+The first script in the `R/` folder: **1.bold-first-reports-workflow_data_preparation** must be opened and executed.
+
+Running this script will load the various R packages required for this step, and load the input datasets. Some basic data processing is then performed to prepare the datasets for Step 2, this includes removing unnecessary columns, filtering out unnecessary rows, renaming required columns. Finally the prepared datasets are written to the `interim` subfolder.   
+
+## Step 2: Taxonomic standardisation of species names across datasets
+
+### Automated taxonomic standardisation
+
+In this step an automated workflow that was developed to standardise the names of alien taxa for South African alien species lists is implemented. The workflow implements taxonomic backbones that are relevant to the South African context.
+
+Three taxonomic backbones are implemented: that of the Global Biodiversity Information Facility (GBIF); that of the Botanical Database of Southern Africa (BODATSA); and that of The World Checklist of Vascular Plants (WCVP), accessed via Plants of the World Online (POWO) (https://powo.science.kew.org/).
+
+The taxonomic backbone used depends on the taxonomic group:
+
+1. The GBIF backbone is used for taxa that are not vascular plants (e.g., animals, fungi, and chromista)
+
+2. The BODATSA backbone is used for alien vascular plants recorded outside of captivity or cultivation in South Africa (i.e., those taxa included in BODATSA)
+
+3. The WCVP backbone is used for alien vascular plants not found outside of captivity or cultivation in South Africa (i.e., those taxa not included in BODATSA)
+
+In addition to standardising a list of taxon names based on the three taxonomic backbones, the workflow obtains canonical names and higher taxonomic information for the taxa from GBIF, and detects, corrects, and flags potential issues and errors. 
+
+In this step, the species names in the various datasets are standardised according to these taxonomic backbones in an iterative manner. This is done by opening and executing the second script in the `R/` folder: **2.rsa-ans-workflow_adjusted**.
+
+Two pieces of information need to be provided when running the script:
+
+*Input E: The date that the BODATSA dataset was downloaded*
+
+The date that the BODATSA dataset was downloaded is provided by the user, and is manually entered under this step in DMY (day, month, year) format. For example "05 December 2024", "5-12-2024", "05/12/2024". 
+
+*Input F:  Information on the format of the taxon names to be standardised*
+
+Information on the format of the taxon names to be standardised is provided by the user, and is manually entered. There are two possible options: "canonical" and "scientific". "canonical" is stipulated if the taxon names are scientific names without authorship and date information. "scientific" is stipulated if the taxon names are scientific names with authorship and date information. Note, for the datasets used in the South African case study (Inputs A-D) "canonical" is stipulated.
+
+Further details on the workflow implemented during this step can be found at: https://github.com/KatelynFaulkner/rsa-ans-workflow
+
+The outputs of this automated taxonomic standardisation are saved to the `processed/` subfolder, within subfolders created for each list. 
+
+### Manual checks of taxonomic standardisation
+
+The output files from the automated taxonomic standardisation process must in this step be manually checked, and any issue addressed. 
+
+Manual changes, where required to the species names, are made to 'scientificName' and 'scientificNameSource' columns. 
+
+The checked/revised files are saved as csvs under the relevant output subfolders, and the names of the files are retained, but add '_c' is added at the end.
+
+E.g., manually check and change 'Taxon_names_standardised' file in `BOLDList/`  subfolder in `processed/` subfolder'. Save corrected csv as 'Taxon_names_standardised_c' in `BOLDList/`  subfolder in `processed/` subfolder'.
+
+Note that only three of the datasets need to be taxonomically standardised:
+- The BOLD dataset
+- A watch list of species of concern 
+- A list of high-risk pests detected at-border in imports but not known to occur post-border within South Africa
+
+## Step 3: Pairwise comparison of standardised lists 
+
+In this the third script in the `R/` folder: **3.bold-first-reports-workflow_list_comparison** is opened and executed.
+
+Running this script will load the various R packages required for this step, and load the required, taxonomically standardised datasets. The various lists are then compared:
+
+- The BOLD list is compared to the watch list to identify species that are in BOLD and are in the Watch list
+- The BOLD list is compared to BODATSA to identify species that are in BOLD, but not in BODATSA
+- The BOLD list and inspection data are compared to to identify species that are in BOLD, and in the inspection data as 'absent'.
+
+The outputs are saved to the `processed/` subfolder, within subfolders created for each list. 
+
+# References
+
+Faulkner KT, Robertson MP, Rouget M, Wilson JR (2014) A simple, rapid methodology for developing invasive species watch lists. Biological Conservation 179: 25–32.
+
+Ratnasingham S, Hebert PDN (2007) BOLD: The Barcode of Life Data System (http://www.barcodinglife.org). Molecular Ecology Notes 7: 355–364. https://doi.org/10.1111/j.1471-8286.2007.01678.x.
+
+Ratnasingham S, Wei C, Chan D, Agda J, Agda J, Ballesteros-Mejia L, Ait Boutou H, El Bastami Z M, Ma E, Manjunath R, Rea D, Ho C, Telfer A, McKeowan J, Rahulan M, Steinke C, Dorsheimer J, Milton M, Hebert PDN (2024) BOLD v4: A Centralized Bioinformatics Platform for DNA-Based Biodiversity Data. In DNA Barcoding: Methods and Protocols, pp. 403-441. Chapter 26. New York, NY: Springer US.
+
+Saccaggi DL, Arendse M, Wilson JR, Terblanche JS (2021) Contaminant organisms recorded on plant product imports to South Africa 1994–2019. Scientific data, 8(1), 83. https://doi.org/10.1038/s41597-021-00869-z 
