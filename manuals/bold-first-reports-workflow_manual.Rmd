@@ -1,7 +1,7 @@
 ---
 title: |
-  | Manual:
   | A workflow to ensure first reports of alien species from molecular analyses are acted upon 
+  | Manual:
 author:
   - Katelyn T. Faulkner$^{1,2}$
   - $^1$South African National Biodiversity Institute, Kirstenbosch Research Centre, Cape Town, 
@@ -127,7 +127,7 @@ The date the dataset is downloaded must be noted (see Step 2 below).
 
 *Input B: The BOLD dataset*
 
-The BOLD dataset needs to be downloaded from the data portal of the BOLD systems website (https://portal.boldsystems.org/). The data must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: BOLDList.csv.
+The BOLD dataset needs to be downloaded from the data portal of the BOLD systems website. Go to https://v4.boldsystems.org/ and then select 'Explore the data'. Search for "South Africa' in the search bar. Information will appear on the amount of published records, how many of those possess species names, and total number of species. To download the list as an Excel file, click on ‘Combined: XML'. The data must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: BOLDList.csv.
 
 *Input C: A watch list of species of concern for South Africa*
 
@@ -135,7 +135,7 @@ A watch list of species of concern for South Africa was developed by Faulkner et
 
 *Input D: A list of high-risk pests detected at-border in imports but not known to occur post-border within South Africa* 
 
-Saccaggi et al. (2021) produced a dataset of agricultural pests interscepted at South Africa's borders, but not yet recorded within the country. The dataset can be downloaded at https://doi.org/10.6084/m9.figshare.c.5180681.v1() in csv format. The dataset must be saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: InspectionsList.csv.
+Saccaggi et al. (2021) produced a dataset of agricultural pests interscepted at South Africa's borders, but not yet recorded within the country. The dataset can be downloaded from figshare at https://doi.org/10.6084/m9.figshare.c.5180681.v1 in csv format. The dataset “Metadata of contaminants on SA plant imports 1994–2019.csv” must be downloaded and saved in the `raw/` folder as a csv. The data must be used in exactly the format in which it is downloaded (i.e., it must not be changed in any way). The file must be named: InspectionsList.csv.
 
 ### Data preparation
 
